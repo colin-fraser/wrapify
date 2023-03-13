@@ -1,0 +1,91 @@
+---
+title: "Building a wrapper"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{building_a_wrapper}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(wrapify)
+
+```
+
+# Faker API
+```{r}
+faker_wrapper <- wrapper("fakerapi.it", 
+                         "/api/v1", 
+                         auth_type = "none",
+                         user_agent = "faker API R package (wrapify)",
+                         default_query_args =  function_args(
+                          "_quantity" = 1,
+                          "_locale" = "en_US",
+                          "_seed" = NULL
+                         ))
+faker_address <- requestor(faker_wrapper, "addresses")
+faker_person <- requestor(
+  faker_wrapper,
+  "persons",
+  query_args = function_args(
+    "_gender" = ,
+    "_birthday_start" = NULL,
+    "_birthday_end" = NULL
+  )
+)
+faker_person("male")
+```
+
+# New York Times
+```{r}
+nyt_wrapper <- wrapper("api.nytimes.com", 
+                       "/svc", 
+                       auth_type = query_auth_type("api-key"))
+book_reviews <- requestor(nyt_wrapper, 
+                          "/books/v3/reviews.json", 
+                          query_args = function_args(author = NULL, isbn = NULL, title = NULL))
+```
+
+## openai
+
+```{r}
+openai <- wrapper("api.openai.com", "/v1", auth_type = bearer_auth_type(), key_management = "ask")
+list_models <- requestor(openai, "models")
+chat_completion <- requestor(openai, 
+                             "chat/completions",
+                             method = "post",
+                             body_args = function_args(
+                               messages = ,
+                               model = "gpt-3.5-turbo",
+                               temperature = NULL,
+                               n = 1,
+                               stop = NULL,
+                               max_tokens = NULL,
+                               presence_penalty = NULL,
+                               frequency_penalty = NULL,
+                               logit_bias = NULL,
+                               user = NULL
+                             ))
+message <- super_simple_constructor(role = , content = , user = NULL)
+chat_completion(
+  model = "gpt-3.5-turbo",
+  messages = list(
+    message("user", "hello!")
+  ), 
+  credentials = Sys.getenv("OPENAI_KEY"))
+
+simple_chat <- function(user_message, token = Sys.getenv("OPENAI_KEY"), ...) {
+  chat_completion(list(message("user", user_message)), credentials = token, ...)
+}
+
+simple_chat("how many prime numbers are between 10 and 12?")
+
+```
+
