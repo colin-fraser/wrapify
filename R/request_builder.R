@@ -2,10 +2,17 @@
 #' @import rlang
 #' @import httr2
 wrapper <- function(hostname, base_path, auth_type = "none",
-                    key_management = 'none', scheme = "https", user_agent = "wrapify",
+                    key_management = c('none', 'environment', 'ask'),
+                    scheme = "https", user_agent = "wrapify",
                     default_content_type = "application/json",
                     default_query_args = NULL,
+                    env_var_name = NULL,
                     ...) {
+  key_management <- match.arg(key_management)
+  if (key_management == 'environment' && is.null(env_var_name)) {
+    abort("If key_management is set to \"environment\" then env_var_name must be supplied")
+  }
+
   if (is.character(auth_type)) {
     auth_type <- auth_type(auth_type)
   }
@@ -21,17 +28,13 @@ wrapper <- function(hostname, base_path, auth_type = "none",
     auth_type = auth_type,
     key_management = key_management,
     default_query_args = default_query_args,
+    env_var_name = env_var_name,
     ...
   )
 }
 
 wrapper_auth_type <- function(wrapper) wrapper$auth_type$type
 
-get_credentials <- function(wrapper, message = "Enter credential") {
-  if (wrapper$key_management == 'ask') {
-    ask_for_credentials(wrapper)
-  }
-}
 
 #' @export
 ask_for_credentials <- function(wrapper) {
@@ -44,7 +47,21 @@ ask_for_credentials <- function(wrapper) {
 }
 
 default_content_type <- function(wrapper) wrapper$default_content_type
-default_credentials <- function(wrapper) wrapper$default_credentials %||% ask_for_credentials(wrapper)
+
+default_credentials <- function(wrapper) {
+  switch(wrapper$key_management,
+         "none" = NULL,
+         "environment" = get_credential_from_environment(wrapper),
+         "ask" = ask_for_credentials(wrapper))
+}
+
+get_credential_from_environment <- function(wrapper) {
+  credential <- Sys.getenv(wrapper$env_var_name)
+  if (is.null(credential) || credential == "") {
+    abort("Credentials not found in environment variable ", wrapper$env_var_name)
+  }
+  credential
+}
 
 base_url <- function(wrapper) {
   httr2::url_build(wrapper$url)
