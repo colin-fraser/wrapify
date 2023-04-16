@@ -29,6 +29,7 @@ property <- function(type = "string", enum = NULL, description = NULL, required 
 }
 
 #' @export
+#' @import rlang
 super_simple_constructor <- function(..., .class = 'supersimpleconstruct', .prune = TRUE) {
   args <- function_args(...)
   f <- function(..., .prune = .prune) {

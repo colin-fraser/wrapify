@@ -8,6 +8,14 @@
 \description{
 What the package does (one paragraph).
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/colin-fraser/wrapify}
+  \item Report bugs at \url{https://github.com/colin-fraser/wrapify/issues}
+}
+
+}
 \author{
 \strong{Maintainer}: Colin Fraser \email{colin.r.fraser@gmail.com}
 
