@@ -12,7 +12,8 @@ Imports:
     getPass,
     httr2,
     purrr,
-    rlang
+    rlang,
+    urltools
 Suggests: 
     knitr,
     rmarkdown,
