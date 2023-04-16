@@ -60,6 +60,3 @@ specified parameters and configurations. The resource_args, query_args, and
 other argument lists will be the arguments of the returned function. These
 should be created using the \code{function_args} function.
 }
-\examples{
-req <- requestor(wrapper, "users", query_args = function_args(userid = , fields = 'all'))
-}

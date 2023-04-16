@@ -75,8 +75,6 @@ wrapper <- function(hostname, base_path, auth_type = "none",
 #'
 #' @return A custom requestor function for making API calls with the specified settings. The returned function will have the specified resource_args, query_args, and other arguments.
 #' @export
-#' @examples
-#' req <- requestor(wrapper, "users", query_args = function_args(userid = , fields = 'all'))
 requestor <- function(wrapper,
                       resource,
                       resource_args = NULL,

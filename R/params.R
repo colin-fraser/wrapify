@@ -13,8 +13,3 @@ param_names <- function(params) {
 required_params <- function(params) {
   Filter(\(x) x$required, params)
 }
-
-to_pairlist <- function(params) {
-  out <- setNames(map(params, "default"), map(params, "name"))
-  rlang::pairlist2(!!!out)
-}
