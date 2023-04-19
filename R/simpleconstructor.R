@@ -49,7 +49,7 @@ property <- function(type = "string", enum = NULL, description = NULL, required 
 #'
 #' # Check the class of the 'result' variable
 #' class(result) # Output: "my_custom_class"
-super_simple_constructor <- function(..., .class = 'supersimpleconstruct', .prune = TRUE) {
+super_simple_constructor <- function(..., .class = c('supersimpleconstruct', 'list'), .prune = TRUE) {
   args <- function_args(...)
   f <- function(..., .prune = .prune) {
     out <- env_get_list(nms = names(args))
