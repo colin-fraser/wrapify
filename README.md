@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# `wrapify`: A package for package-making
+# `wrapify`: A package for making API packages
 
 <!-- badges: start -->
 <!-- badges: end -->
@@ -191,13 +191,13 @@ call the function but it’s a bit awkward.
 ``` r
 chat_completion(list(list(role = "user", content = "hello, how are you?")))
 #> $id
-#> [1] "chatcmpl-776rHG9hMtFv29Dug8JKrQbzWbAJC"
+#> [1] "chatcmpl-776vTjZFXHUgqXY9Uu3EKFBbEnXl1"
 #> 
 #> $object
 #> [1] "chat.completion"
 #> 
 #> $created
-#> [1] 1681929015
+#> [1] 1681929275
 #> 
 #> $model
 #> [1] "gpt-3.5-turbo-0301"
@@ -207,10 +207,10 @@ chat_completion(list(list(role = "user", content = "hello, how are you?")))
 #> [1] 14
 #> 
 #> $usage$completion_tokens
-#> [1] 27
+#> [1] 31
 #> 
 #> $usage$total_tokens
-#> [1] 41
+#> [1] 45
 #> 
 #> 
 #> $choices
@@ -220,7 +220,7 @@ chat_completion(list(list(role = "user", content = "hello, how are you?")))
 #> [1] "assistant"
 #> 
 #> $choices[[1]]$message$content
-#> [1] "As an AI language model, I do not have feelings or emotions, but I'm functioning well. How can I assist you today?"
+#> [1] "As an AI language model, I don't have feelings. However, I am functioning properly and ready to assist you. How may I help you today?"
 #> 
 #> 
 #> $choices[[1]]$finish_reason
@@ -257,13 +257,13 @@ This makes calling the API function more straightforward.
 ``` r
 chat_completion(list(chat_message("hello there!")))
 #> $id
-#> [1] "chatcmpl-776rJ3pK43objV1p1jYzeGSeUJmMT"
+#> [1] "chatcmpl-776vVeiO5kChtJB2PfDBLOfzVnQ5x"
 #> 
 #> $object
 #> [1] "chat.completion"
 #> 
 #> $created
-#> [1] 1681929017
+#> [1] 1681929277
 #> 
 #> $model
 #> [1] "gpt-3.5-turbo-0301"
@@ -273,10 +273,10 @@ chat_completion(list(chat_message("hello there!")))
 #> [1] 11
 #> 
 #> $usage$completion_tokens
-#> [1] 9
+#> [1] 8
 #> 
 #> $usage$total_tokens
-#> [1] 20
+#> [1] 19
 #> 
 #> 
 #> $choices
@@ -286,7 +286,7 @@ chat_completion(list(chat_message("hello there!")))
 #> [1] "assistant"
 #> 
 #> $choices[[1]]$message$content
-#> [1] "Hello! How can I assist you today?"
+#> [1] "Hello! How may I assist you?"
 #> 
 #> 
 #> $choices[[1]]$finish_reason
@@ -307,13 +307,13 @@ quick_chat_completion <- function(user_message, ...) {
 
 quick_chat_completion("What is the square root of 100?")
 #> $id
-#> [1] "chatcmpl-776rKKKRDyizeFxdYQThouVO6pgG2"
+#> [1] "chatcmpl-776vXzfJ5SIcOrqV473uOKgWwBJ3G"
 #> 
 #> $object
 #> [1] "chat.completion"
 #> 
 #> $created
-#> [1] 1681929018
+#> [1] 1681929279
 #> 
 #> $model
 #> [1] "gpt-3.5-turbo-0301"
