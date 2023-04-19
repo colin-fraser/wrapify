@@ -7,7 +7,7 @@
 <!-- badges: end -->
 
 This is an example package to demonstrate the use of `wrapify` for
-constructing simple API wrappers.
+constructing simple API wrappers. Install with `devtools::install_github("colin-fraser/wrapify/examples/openai/")`.
 
 ``` r
 library(openaiwrapper)
@@ -52,5 +52,4 @@ quick_chat_completion("What is 20 squared?", token = getPass::getPass("OpenAI AP
 #> [1] 0
 ```
 
-See [wrapper.R](R/wrapper.R) to see how this package is created using
-`wrapify`.
+See [wrapper.R](R/wrapper.R) to see how this package is created using `wrapify`.
