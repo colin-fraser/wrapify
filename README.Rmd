@@ -1,0 +1,145 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# `wrapify`: A package for package-making
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+`wrapify` is for quickly generating API wrappers in R. It abstracts a lot of the boilerplate in creating these packages manually using `httr2` (which already itself abstracts a lot of boilerplate).
+
+## Installation
+
+You can install the development version of wrapify from [GitHub](https://github.com/) with:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("colin-fraser/wrapify")
+```
+
+## A simple example
+
+### Wrappers
+
+Here's how to construct a wrapper around the OpenAI API. A more complete implementation of this is found in the [`examples/openai`](examples/openai) directory.
+
+We start by creating a wrapper, which stores some baseline properties of the API.
+
+```{r wrapper}
+library(wrapify)
+openai_wrapper <- wrapper(
+  hostname = "api.openai.com",
+  base_path = "/v1",
+  auth_type = bearer_auth_type(),
+  key_management = "env",
+  env_var_name = "OPENAI_KEY"
+)
+```
+
+This specifies that we will be building a wrapper for an API hosted at `api.openai.com/v1`, that the API uses Bearer tokens, and that we expect the user to store their API key in an environment variable called `"OPENAI_KEY"`.
+
+### Requestors
+
+Now we can create requestors using the `requestor` function. Here's one that implements the [Chat Complation](https://platform.openai.com/docs/guides/chat) request. 
+
+```{r chat_completion}
+chat_completion <- requestor(
+  wrapper = openai_wrapper,
+  resource = "chat/completions",
+  method = "post",
+  body_args = function_args(
+    messages = ,  # specifying an empty value forces the argument to be required
+    model = "gpt-3.5-turbo",  # setting a default value for an argument
+    temperature = NULL,  # making an argument optional
+    n = 1,
+    stop = NULL,
+    max_tokens = NULL,
+    presence_penalty = NULL,
+    frequency_penalty = NULL,
+    logit_bias = NULL,
+    user = NULL
+  )
+)
+```
+
+This creates a requestor function called _chat_completion_ which makes the specified API call. The resulting function has arguments specified by the `body_args` argument above.
+
+```{r}
+str(chat_completion)
+```
+Calling this function sends the specified request to the API. We can check how this works without actually sending the request by setting `action = 'dryrun'`.
+
+```{r}
+chat_completion("hello there!", action = "dryrun", credentials = "[API KEY]")
+```
+
+
+### Simple Constructs
+
+If I go ahead and run the function as specified above, I will run into a problem. Referring to the [Chat completion documentation](https://platform.openai.com/docs/guides/chat), it turns out that the `messages` argument can't just be a simple string; it needs to be a list of specially formatted message objects. The documentation gives the following example.
+
+```
+curl https://api.openai.com/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $OPENAI_API_KEY" \
+  -d '{
+    "model": "gpt-3.5-turbo",
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'
+
+```
+
+We can relatively straightforwardly construct this input on the fly and call the function but it's a bit awkward.
+
+```{r}
+chat_completion(list(list(role = "user", content = "hello, how are you?")))
+```
+
+To make this easier, the super_simple_constructor function creates constructors of named lists.
+
+```{r}
+chat_message <- super_simple_constructor(content = , role = 'user')
+```
+
+This creates a function called `chat_message` that returns a named list in the right format.
+
+```{r}
+chat_message("hello there!")
+```
+This makes calling the API function more straightforward.
+
+```{r}
+chat_completion(list(chat_message("hello there!")))
+```
+
+To make this even easier for the user, you might implement even more of this boilerplate for them.
+
+```{r}
+quick_chat_completion <- function(user_message, ...) {
+  messages <- list(chat_message(user_message))
+  chat_completion(messages, ...)
+}
+
+quick_chat_completion("What is the square root of 100?")
+```
+
+### Documenting the requestor functions
+
+Since the main point of this package is to provide tools for building packages, you'll want to document the requestor functions. To help with this, there is a function called `generate_roxygen_comment` that constructs Roxygen2 comment templates for the functions that you create with `requestor`.
+
+```{r}
+generate_roxygen_comment(chat_completion)
+```
+
