@@ -22,11 +22,49 @@ devtools::install_github("colin-fraser/wrapify")
 
 ## A simple example
 
-### Wrappers
-
 Here’s how to construct a wrapper around the OpenAI API. A more complete
 implementation of this is found in the
-[`examples/openai`](examples/openai) directory.
+[`examples/openai`](examples/openai) directory. This is the full code
+for a minimal package that hits the Chat Completion resource:
+
+``` r
+openai_wrapper <- wrapper(
+  hostname = "api.openai.com",
+  base_path = "/v1",
+  auth_type = bearer_auth_type(),
+  key_management = "env",
+  env_var_name = "OPENAI_KEY"
+)
+
+#' @export
+chat_message <- super_simple_constructor(content = , role = 'user')
+
+#' @export
+chat_completion <- requestor(
+  wrapper = openai_wrapper,
+  resource = "chat/completions",
+  method = "post",
+  body_args = function_args(
+    messages = ,  # specifying an empty value forces the argument to be required
+    model = "gpt-3.5-turbo",  # setting a default value for an argument
+    temperature = NULL,  # making an argument optional
+    n = 1,
+    stop = NULL,
+    max_tokens = NULL,
+    presence_penalty = NULL,
+    frequency_penalty = NULL,
+    logit_bias = NULL,
+    user = NULL
+  )
+)
+```
+
+This would create an R package with two exported functions,
+`chat_completion` which hits the OpenAI API and `chat_message` which
+constructs `message` objects as specified in the API documentation. See
+below for more details.
+
+### Wrappers
 
 We start by creating a wrapper, which stores some baseline properties of
 the API.
@@ -153,13 +191,13 @@ call the function but it’s a bit awkward.
 ``` r
 chat_completion(list(list(role = "user", content = "hello, how are you?")))
 #> $id
-#> [1] "chatcmpl-776hRmARRGPAGVDumahqRPSXN0YVF"
+#> [1] "chatcmpl-776rHG9hMtFv29Dug8JKrQbzWbAJC"
 #> 
 #> $object
 #> [1] "chat.completion"
 #> 
 #> $created
-#> [1] 1681928405
+#> [1] 1681929015
 #> 
 #> $model
 #> [1] "gpt-3.5-turbo-0301"
@@ -169,10 +207,10 @@ chat_completion(list(list(role = "user", content = "hello, how are you?")))
 #> [1] 14
 #> 
 #> $usage$completion_tokens
-#> [1] 29
+#> [1] 27
 #> 
 #> $usage$total_tokens
-#> [1] 43
+#> [1] 41
 #> 
 #> 
 #> $choices
@@ -182,7 +220,7 @@ chat_completion(list(list(role = "user", content = "hello, how are you?")))
 #> [1] "assistant"
 #> 
 #> $choices[[1]]$message$content
-#> [1] "As an AI language model, I don't have feelings or emotions. But I'm here to assist you, how may I help you today?"
+#> [1] "As an AI language model, I do not have feelings or emotions, but I'm functioning well. How can I assist you today?"
 #> 
 #> 
 #> $choices[[1]]$finish_reason
@@ -219,13 +257,13 @@ This makes calling the API function more straightforward.
 ``` r
 chat_completion(list(chat_message("hello there!")))
 #> $id
-#> [1] "chatcmpl-776hUrMLFR1sEEsqqEUHGFReRM2a4"
+#> [1] "chatcmpl-776rJ3pK43objV1p1jYzeGSeUJmMT"
 #> 
 #> $object
 #> [1] "chat.completion"
 #> 
 #> $created
-#> [1] 1681928408
+#> [1] 1681929017
 #> 
 #> $model
 #> [1] "gpt-3.5-turbo-0301"
@@ -269,13 +307,13 @@ quick_chat_completion <- function(user_message, ...) {
 
 quick_chat_completion("What is the square root of 100?")
 #> $id
-#> [1] "chatcmpl-776hVhL4Bxc9ewYlo3f07W6gaTThK"
+#> [1] "chatcmpl-776rKKKRDyizeFxdYQThouVO6pgG2"
 #> 
 #> $object
 #> [1] "chat.completion"
 #> 
 #> $created
-#> [1] 1681928409
+#> [1] 1681929018
 #> 
 #> $model
 #> [1] "gpt-3.5-turbo-0301"

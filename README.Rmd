@@ -31,9 +31,43 @@ devtools::install_github("colin-fraser/wrapify")
 
 ## A simple example
 
-### Wrappers
+Here's how to construct a wrapper around the OpenAI API. A more complete implementation of this is found in the [`examples/openai`](examples/openai) directory. This is the full code for a minimal package that hits the Chat Completion resource:
 
-Here's how to construct a wrapper around the OpenAI API. A more complete implementation of this is found in the [`examples/openai`](examples/openai) directory.
+```{r eval=FALSE}
+openai_wrapper <- wrapper(
+  hostname = "api.openai.com",
+  base_path = "/v1",
+  auth_type = bearer_auth_type(),
+  key_management = "env",
+  env_var_name = "OPENAI_KEY"
+)
+
+#' @export
+chat_message <- super_simple_constructor(content = , role = 'user')
+
+#' @export
+chat_completion <- requestor(
+  wrapper = openai_wrapper,
+  resource = "chat/completions",
+  method = "post",
+  body_args = function_args(
+    messages = ,  # specifying an empty value forces the argument to be required
+    model = "gpt-3.5-turbo",  # setting a default value for an argument
+    temperature = NULL,  # making an argument optional
+    n = 1,
+    stop = NULL,
+    max_tokens = NULL,
+    presence_penalty = NULL,
+    frequency_penalty = NULL,
+    logit_bias = NULL,
+    user = NULL
+  )
+)
+```
+
+This would create an R package with two exported functions, `chat_completion` which hits the OpenAI API and `chat_message` which constructs `message` objects as specified in the API documentation. See below for more details.
+
+### Wrappers
 
 We start by creating a wrapper, which stores some baseline properties of the API.
 
