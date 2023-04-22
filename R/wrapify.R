@@ -12,6 +12,7 @@
 #' @param default_content_type The default content type for API requests (default: "application/json").
 #' @param default_query_args A named list of default query arguments to include in all API requests.
 #' @param env_var_name The name of the environment variable that stores the API key (required when key_management is set to "environment").
+#' @param credential_setter The name of the credential_setter function. This is used in the error message shown to the user when the credential can't be found.
 #' @param ... Additional arguments passed to the wrapper object.
 #'
 #' @return A wrapper object with the provided settings.
@@ -24,6 +25,7 @@ wrapper <- function(hostname, base_path, auth_type = "none",
                     default_content_type = "application/json",
                     default_query_args = NULL,
                     env_var_name = NULL,
+                    credential_setter = NULL,
                     ...) {
   key_management <- match.arg(key_management)
   if (key_management == 'environment' && is.null(env_var_name)) {
@@ -46,6 +48,7 @@ wrapper <- function(hostname, base_path, auth_type = "none",
     key_management = key_management,
     default_query_args = default_query_args,
     env_var_name = env_var_name,
+    credential_setter = credential_setter,
     ...
   )
 }
@@ -157,11 +160,48 @@ default_credentials <- function(wrapper) {
          "ask" = ask_for_credentials(wrapper))
 }
 
-get_credential_from_environment <- function(wrapper) {
-  credential <- Sys.getenv(wrapper$env_var_name)
-  if (is.null(credential) || credential == "") {
-    abort(paste("Credentials not found in environment variable:", wrapper$env_var_name))
+#' Create a credential manager function for an API wrapper
+#'
+#' This function generates a custom credential manager function for the given
+#' API wrapper. The credential manager function is responsible for storing the
+#' API credentials in the environment variable specified in the wrapper.
+#' This function only works when the `key_management` option of the wrapper
+#' is set to "environment".
+#'
+#' @param wrapper The API wrapper object initialized using the `wrapper` function.
+#' @importFrom jsonlite toJSON
+#'
+#' @return A custom credential manager function that stores the API credentials
+#'         in the environment variable specified in the wrapper. When called,
+#'         the returned function collects the API credentials from the user
+#'         using `ask_for_credentials` and stores them as a JSON string
+#'         in the environment variable.
+#' @export
+credential_setter <- function(wrapper) {
+  key_management <- wrapper$key_management
+
+  stopifnot("`key_management` must be 'environment'" = key_management == "environment",
+            "`env_var_name` must be supplied" = !is.null(wrapper$env_var_name))
+
+  env_var_name <- wrapper$env_var_name
+
+  function(credentials = ask_for_credentials(wrapper)) {
+    json_credentials <- toJSON(credentials, auto_unbox = TRUE)
+    do.call(Sys.setenv, list2("{env_var_name}" := json_credentials))
   }
+}
+
+#' @importFrom jsonlite fromJSON
+get_credential_from_environment <- function(wrapper) {
+  credential_json <- Sys.getenv(wrapper$env_var_name)
+  if (is.null(credential_json) || credential_json == "") {
+    msg <- paste("Credentials not found in environment variable:", wrapper$env_var_name)
+    if (!is.null(wrapper$credential_setter)) {
+      msg <- paste(msg, "\nTry running", paste0(wrapper$credential_setter, "()"))
+    }
+    abort(msg)
+  }
+  credential <- fromJSON(credential_json, simplifyVector = FALSE)
   credential
 }
 
