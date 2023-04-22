@@ -4,7 +4,7 @@
 \name{wrapify-package}
 \alias{wrapify}
 \alias{wrapify-package}
-\title{wrapify: What the Package Does (One Line, Title Case)}
+\title{wrapify: Quickly create API wrappers}
 \description{
 What the package does (one paragraph).
 }
