@@ -105,3 +105,13 @@ quick_chat_completion <- function(user_message, system_message = NULL, ...) {
 #' @return A chat_message object, which is just a named list with content, role, and name.
 #' @export
 chat_message <- super_simple_constructor(content =, role = "user", name = NULL)
+
+#' Save an API key to an environment variable
+#'
+#' Saves the key
+#'
+#' @param credentials the value of the key to save. Asks the user by default.
+#'
+#' @return A logical vector as per Sys.setenv
+#' @export
+set_api_key <- credential_setter(openai)
