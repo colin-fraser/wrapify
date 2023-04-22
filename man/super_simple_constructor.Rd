@@ -4,7 +4,11 @@
 \alias{super_simple_constructor}
 \title{Super Simple Constructor}
 \usage{
-super_simple_constructor(..., .class = "supersimpleconstruct", .prune = TRUE)
+super_simple_constructor(
+  ...,
+  .class = c("supersimpleconstruct", "list"),
+  .prune = TRUE
+)
 }
 \arguments{
 \item{...}{The arguments for the constructor function.}
