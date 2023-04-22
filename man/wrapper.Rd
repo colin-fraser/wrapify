@@ -14,6 +14,7 @@ wrapper(
   default_content_type = "application/json",
   default_query_args = NULL,
   env_var_name = NULL,
+  credential_setter = NULL,
   ...
 )
 }
@@ -35,6 +36,8 @@ wrapper(
 \item{default_query_args}{A named list of default query arguments to include in all API requests.}
 
 \item{env_var_name}{The name of the environment variable that stores the API key (required when key_management is set to "environment").}
+
+\item{credential_setter}{The name of the credential_setter function. This is used in the error message shown to the user when the credential can't be found.}
 
 \item{...}{Additional arguments passed to the wrapper object.}
 }

@@ -3,6 +3,7 @@
 export(ask_for_credentials)
 export(auth_type)
 export(bearer_auth_type)
+export(credential_setter)
 export(function_args)
 export(generate_roxygen_comment)
 export(query_auth_type)
