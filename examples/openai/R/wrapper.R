@@ -105,3 +105,33 @@ quick_chat_completion <- function(user_message, system_message = NULL, ...) {
 #' @return A chat_message object, which is just a named list with content, role, and name.
 #' @export
 chat_message <- super_simple_constructor(content =, role = "user", name = NULL)
+
+
+#' Get Embeddings
+#'
+#' Gets embeddings from openai
+#'
+#' @param input The input text
+#' @param model Which embedding model to use
+#' @param dimensions How many dimensions to return
+#' @param user A user ID
+#' @param ... Arguments passed to the request function
+#' @param credentials Credentials
+#' @param action perform or dry run
+#' @param decode_if_success decode if success??
+#'
+#' @return an embedding object
+#' @export
+get_embedding <- requestor(
+  openai,
+  "embeddings",
+  method = "post",
+  body_args = function_args(
+    input = ,
+    model = "text-embedding-3-small",
+    dimensions = NULL,
+    user = NULL
+  )
+)
+
+
