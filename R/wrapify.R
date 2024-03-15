@@ -26,8 +26,10 @@ wrapper <- function(hostname, base_path, auth_type = "none",
                     default_query_args = NULL,
                     env_var_name = NULL,
                     credential_setter = NULL,
+                    credential_type = c("json", "string"),
                     ...) {
   key_management <- match.arg(key_management)
+  credential_type <- match.arg(credential_type)
   if (key_management == 'environment' && is.null(env_var_name)) {
     abort("If key_management is set to \"environment\" then env_var_name must be supplied")
   }
@@ -49,6 +51,7 @@ wrapper <- function(hostname, base_path, auth_type = "none",
     default_query_args = default_query_args,
     env_var_name = env_var_name,
     credential_setter = credential_setter,
+    credential_type = credential_type,
     ...
   )
 }
@@ -193,15 +196,17 @@ credential_setter <- function(wrapper) {
 
 #' @importFrom jsonlite fromJSON
 get_credential_from_environment <- function(wrapper) {
-  credential_json <- Sys.getenv(wrapper$env_var_name)
-  if (is.null(credential_json) || credential_json == "") {
+  credential <- Sys.getenv(wrapper$env_var_name)
+  if (is.null(credential) || credential == "") {
     msg <- paste("Credentials not found in environment variable:", wrapper$env_var_name)
     if (!is.null(wrapper$credential_setter)) {
       msg <- paste(msg, "\nTry running", paste0(wrapper$credential_setter, "()"))
     }
     abort(msg)
   }
-  credential <- fromJSON(credential_json, simplifyVector = FALSE)
+  if (wrapper$credential_type == "json") {
+    credential <- fromJSON(credential, simplifyVector = FALSE)
+  }
   credential
 }
 

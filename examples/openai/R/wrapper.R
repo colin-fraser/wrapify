@@ -4,7 +4,8 @@ openai <- wrapper(
   base_path = "/v1",
   auth_type = bearer_auth_type(),
   key_management = "env",
-  env_var_name = "OPENAI_KEY"
+  env_var_name = "OPENAI_KEY",
+  credential_type = "string"
 )
 
 #' List models
@@ -115,3 +116,30 @@ chat_message <- super_simple_constructor(content =, role = "user", name = NULL)
 #' @return A logical vector as per Sys.setenv
 #' @export
 set_api_key <- credential_setter(openai)
+
+#' Get Embeddings
+#'
+#' Gets embeddings from openai
+#'
+#' @param input The input text
+#' @param model Which embedding model to use
+#' @param dimensions How many dimensions to return
+#' @param user A user ID
+#' @param ... Arguments passed to the request function
+#' @param credentials Credentials
+#' @param action perform or dry run
+#' @param decode_if_success decode if success??
+#'
+#' @return an embedding object
+#' @export
+get_embedding <- requestor(
+  openai,
+  "embeddings",
+  method = "post",
+  body_args = function_args(
+    input = ,
+    model = "text-embedding-3-small",
+    dimensions = NULL,
+    user = NULL
+  )
+)

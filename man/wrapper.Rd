@@ -15,6 +15,7 @@ wrapper(
   default_query_args = NULL,
   env_var_name = NULL,
   credential_setter = NULL,
+  credential_type = c("json", "string"),
   ...
 )
 }

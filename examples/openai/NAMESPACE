@@ -2,7 +2,9 @@
 
 export(chat_completion)
 export(chat_message)
+export(get_embedding)
 export(list_models)
 export(quick_chat_completion)
 export(retrieve_model)
+export(set_api_key)
 import(wrapify)
