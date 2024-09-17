@@ -8,7 +8,8 @@ list_models(
   ...,
   credentials = default_credentials(wrapper),
   action = default_action,
-  decode_if_success = decode_if_success_default_value
+  decode_if_success = decode_if_success_default_value,
+  post_process = post_process_default_value
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ list_models(
 \item{action}{either "perform" or "dryrun"}
 
 \item{decode_if_success}{should decode if success?}
+
+\item{post_process}{if true, convert return object to tibble}
 }
 \value{
 A list of available models

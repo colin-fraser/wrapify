@@ -16,10 +16,18 @@ openai <- wrapper(
 #' @param credentials API token
 #' @param action either "perform" or "dryrun"
 #' @param decode_if_success should decode if success?
+#' @param post_process if true, convert return object to tibble
 #'
 #' @return A list of available models
 #' @export
-list_models <- requestor(openai, "models")
+list_models <- requestor(openai, "models",
+                         post_processor = \(x) {
+                           x$data |>
+                             purrr::map(tibble::as_tibble) |>
+                             purrr::list_rbind() |>
+                             dplyr::arrange(id)
+                         }
+)
 
 #' Retrieve model
 #'
@@ -128,7 +136,7 @@ set_api_key <- credential_setter(openai)
 #' @param ... Arguments passed to the request function
 #' @param credentials Credentials
 #' @param action perform or dry run
-#' @param decode_if_success decode if success??
+#' @param decode_if_success decode if success?
 #'
 #' @return an embedding object
 #' @export

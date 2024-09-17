@@ -30,7 +30,7 @@ get_embedding(
 
 \item{action}{perform or dry run}
 
-\item{decode_if_success}{decode if success??}
+\item{decode_if_success}{decode if success?}
 }
 \value{
 an embedding object
