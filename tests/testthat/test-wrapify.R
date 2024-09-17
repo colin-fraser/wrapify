@@ -9,7 +9,7 @@ test_wrapper <- wrapper(
 )
 
 test_that("wrapper function creates a valid wrapper object", {
-  expect_named(test_wrapper, c("url", "user_agent", "default_content_type", "auth_type", "key_management", "default_query_args", "env_var_name", "credential_setter"))
+  expect_named(test_wrapper, c("url", "user_agent", "default_content_type", "auth_type", "key_management", "default_query_args", "env_var_name", "credential_setter", "credential_type"))
   expect_equal(test_wrapper$url$hostname, "api.example.com")
   expect_equal(test_wrapper$url$path, "/v1")
   expect_equal(test_wrapper$url$scheme, "https")
@@ -71,7 +71,9 @@ test_that("requestor function retrieves a user from the JSONPlaceholder API", {
 
 test_that("credential_setter stores and retrieves API credentials correctly", {
   # Create a test wrapper object
-  test_wrapper <- list(
+  test_wrapper <- wrapper(
+    "test.com",
+    "api",
     key_management = "environment",
     env_var_name = "TEST_API_CREDENTIALS"
   )
@@ -113,7 +115,9 @@ test_that("get_credential_from_environment includes credential_setter message if
 
 test_that("get_credential_from_environment returns the correct credentials", {
   Sys.setenv("MY_CREDENTIALS" = '{"username": "my_username", "password": "my_password"}')
-  mock_wrapper <- list(
+  mock_wrapper <- wrapper(
+    "test.com",
+    "api",
     env_var_name = "MY_CREDENTIALS",
     credential_setter = NULL
   )
