@@ -34,6 +34,14 @@ test_that("requestor function creates a valid requestor function", {
   expect_equal(formals(test_requestor)$fields, "all")
 })
 
+test_that("requestor function with post_processor", {
+  test_requestor <- requestor(test_wrapper, "users",
+                              query_args = function_args(userid = ),
+                              post_processor = \(x) 1)
+  expect_named(formals(test_requestor), c("userid", "...", "credentials", "action",
+                                          "decode_if_success", "post_process"))
+})
+
 # Test the requestor function with a dry run
 test_that("requestor function performs a dry run correctly", {
   response <- test_requestor(userid = 1, action = "dryrun")
@@ -42,23 +50,27 @@ test_that("requestor function performs a dry run correctly", {
   expect_equal(response$headers$`user-agent`, "test_agent")
 })
 
-jsonplaceholder_wrapper <- wrapper(
-  hostname = "jsonplaceholder.typicode.com",
-  base_path = "",
-  auth_type = "none",
-  key_management = "none",
-  scheme = "https",
-  user_agent = "test_agent",
-  default_content_type = "application/json"
-)
 
-users_requestor <- requestor(
-  jsonplaceholder_wrapper,
-  "users",
-  query_args = function_args(id = )
-)
+
+
 
 test_that("requestor function retrieves a user from the JSONPlaceholder API", {
+  jsonplaceholder_wrapper <- wrapper(
+    hostname = "jsonplaceholder.typicode.com",
+    base_path = "",
+    auth_type = "none",
+    key_management = "none",
+    scheme = "https",
+    user_agent = "test_agent",
+    default_content_type = "application/json"
+  )
+
+  users_requestor <- requestor(
+    jsonplaceholder_wrapper,
+    "users",
+    query_args = function_args(id = )
+  )
+
   # Make a request to the "/users" endpoint with a specific user ID
   response <- users_requestor(id = 1, action = "perform")
 
@@ -67,6 +79,18 @@ test_that("requestor function retrieves a user from the JSONPlaceholder API", {
 
   # Check if some properties have the expected values
   expect_equal(response[[1]]$id, 1)
+
+  users_requestor_pp <- requestor(
+    jsonplaceholder_wrapper,
+    "users",
+    query_args = function_args(id = ),
+    post_processor = \(x) x[[1]]$company$name
+  )
+
+  response_2 <- users_requestor_pp(id = 1, post_process = FALSE)
+  expect_equal(response, response_2)
+  response_3 <- users_requestor_pp(id = 1, post_process = TRUE)
+  expect_equal(response_3, "Romaguera-Crona")
 })
 
 test_that("credential_setter stores and retrieves API credentials correctly", {

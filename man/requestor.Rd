@@ -18,7 +18,9 @@ requestor(
   content_type = NULL,
   body_type = "json",
   additional_request_args = NULL,
-  decode_if_success_default_value = TRUE
+  decode_if_success_default_value = TRUE,
+  post_process_default_value = TRUE,
+  post_processor = NULL
 )
 }
 \arguments{
@@ -49,6 +51,11 @@ requestor(
 \item{additional_request_args}{Additional arguments to be passed to the request object.}
 
 \item{decode_if_success_default_value}{A logical value indicating whether to decode the response if the request is successful (default: TRUE).}
+
+\item{post_process_default_value}{A logical value indicating whether to apply the post_processor by default.}
+
+\item{post_processor}{A function that is applied to the return value. You might want to use as_tibble or something.
+If NULL then the return value is returned unchanged.}
 }
 \value{
 A custom requestor function for making API calls with the specified settings. The returned function will have the specified resource_args, query_args, and other arguments.

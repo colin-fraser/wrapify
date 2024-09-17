@@ -78,6 +78,9 @@ wrapper <- function(hostname, base_path, auth_type = "none",
 #' @param body_type The type of request body to use for the API request (default: 'json').
 #' @param additional_request_args Additional arguments to be passed to the request object.
 #' @param decode_if_success_default_value A logical value indicating whether to decode the response if the request is successful (default: TRUE).
+#' @param post_process_default_value A logical value indicating whether to apply the post_processor by default.
+#' @param post_processor A function that is applied to the return value. You might want to use as_tibble or something.
+#'   If NULL then the return value is returned unchanged.
 #'
 #' @return A custom requestor function for making API calls with the specified settings. The returned function will have the specified resource_args, query_args, and other arguments.
 #' @export
@@ -94,7 +97,9 @@ requestor <- function(wrapper,
                       content_type = NULL,
                       body_type = 'json',
                       additional_request_args = NULL,
-                      decode_if_success_default_value = TRUE) {
+                      decode_if_success_default_value = TRUE,
+                      post_process_default_value = TRUE,
+                      post_processor = NULL) {
   default_action <- match.arg(default_action)
   content_type <- content_type %||% default_content_type(wrapper)
   args <- c(resource_args,
@@ -103,7 +108,11 @@ requestor <- function(wrapper,
             body_args)
   f <- function(..., credentials = default_credentials(wrapper),
                 action = default_action,
-                decode_if_success = decode_if_success_default_value) {
+                decode_if_success = decode_if_success_default_value,
+                post_process = post_process_default_value) {
+    if (is.null(post_processor)) {
+      post_process <- FALSE
+    }
     if (length(query_args) > 0 || length(wrapper$default_query_args) > 0) {
       query_args <- rlang::env_get_list(nms = c(names(query_args), names(wrapper$default_query_args)))
     }
@@ -132,13 +141,21 @@ requestor <- function(wrapper,
       if (decode_if_success && !resp_is_error(out)) {
         out <- decoder(content_type)(out)
       }
+
+      if (post_process && !is.null(post_processor)) {
+        out <- post_processor(out)
+      }
     } else if (action == "dryrun") {
       out <- req_dry_run(out)
     }
 
     out
   }
-  formals(f) <- c(args, formals(f))
+  f_args <- c(args, formals(f))
+  if (is.null(post_processor)) {
+    f_args$post_process <- NULL
+  }
+  formals(f) <- f_args
   f
 }
 
