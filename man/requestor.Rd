@@ -14,13 +14,10 @@ requestor(
   body_args = NULL,
   body_constants = NULL,
   method = "get",
-  default_action = c("perform", "dryrun"),
   content_type = NULL,
   body_type = "json",
   additional_request_args = NULL,
-  decode_if_success_default_value = TRUE,
-  post_process_default_value = TRUE,
-  post_processor = NULL
+  perform_by_default = TRUE
 )
 }
 \arguments{
@@ -42,13 +39,13 @@ requestor(
 
 \item{method}{The HTTP method to use for the API request (default: "get"). Accepts "get", "post", "put", "delete", etc.}
 
-\item{default_action}{The default action to perform when the generated requestor function is called (default: "perform"). Accepts "perform" or "dryrun".}
-
 \item{content_type}{The content type for the API request (default: determined by the wrapper's default_content_type).}
 
 \item{body_type}{The type of request body to use for the API request (default: 'json').}
 
 \item{additional_request_args}{Additional arguments to be passed to the request object.}
+
+\item{default_action}{The default action to perform when the generated requestor function is called (default: "perform"). Accepts "perform" or "dryrun".}
 
 \item{decode_if_success_default_value}{A logical value indicating whether to decode the response if the request is successful (default: TRUE).}
 
