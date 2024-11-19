@@ -29,6 +29,21 @@ wrapper <- function(base_url,
   )
 }
 
+get_values_from_environment_as_list <- function(x) {
+  if (length(x) == 0) {
+    NULL
+  } else {
+    env_get_list(nms = names(x), env = caller_env(n=1))
+  }
+}
+
+do_if <- function(x, p, f, ...) {
+  if (!p) {
+    return(x)
+  }
+  f(x, ...)
+}
+
 #' Create an API requestor function
 #'
 #' This function generates a custom requestor function for the given wrapper
@@ -66,6 +81,8 @@ requestor <- function(wrapper,
                       query_constants = NULL,
                       body_args = NULL,
                       body_constants = NULL,
+                      header_args = NULL,
+                      header_constants = NULL,
                       method = "get",
                       content_type = NULL,
                       body_type = "json",
@@ -77,7 +94,8 @@ requestor <- function(wrapper,
     resource_args,
     query_args,
     wrapper$default_query_args,
-    body_args
+    body_args,
+    header_args
   )
   f <- function(..., .credentials = get_credentials_from_wrapper(wrapper), .perform = perform_by_default, .extract = extract_body_by_default,
                 .extractor = extractor) {
@@ -86,27 +104,22 @@ requestor <- function(wrapper,
       check_required(arg)
     }
 
-    if (length(query_args) > 0 || length(wrapper$default_query_args) > 0) {
-      query_args <- rlang::env_get_list(nms = c(names(query_args), names(wrapper$default_query_args)))
-    }
-    if (length(resource_args) > 0) {
-      resource_args <- rlang::env_get_list(nms = names(resource_args))
-    }
-    if (length(body_args) > 0) {
-      body_args <- rlang::env_get_list(nms = names(body_args))
-    }
-    query_payload <- c(query_args, query_constants)
-    resource_arg_values <- c(resource_args, resource_constants)
+
+    # get provided argument values as lists
+    query_arg_values <- get_values_from_environment_as_list(c(query_args, wrapper$default_query_args))
+    resource_arg_values <- get_values_from_environment_as_list(resource_args)
+    body_arg_values <- get_values_from_environment_as_list(body_args)
+    header_arg_values <- get_values_from_environment_as_list(header_args)
+
+    query_payload <- c(query_arg_values, query_constants)
+    resource_values <- c(resource_arg_values, resource_constants)
 
     out <- request_from_wrapper(wrapper, .credentials) |>
       req_method(method) |>
-      req_url_path_append(glue_url(resource, resource_arg_values)) |>
-      req_url_query(!!!query_payload)
-
-    if (length(body_args) > 0) {
-      out <- out |>
-        req_body_json(purrr::compact(body_args))
-    }
+      req_url_path_append(glue_url(resource, resource_values)) |>
+      req_url_query(!!! query_payload) |>
+      req_headers(!!! header_arg_values) |>
+      do_if(length(body_arg_values) > 0, req_body_json, data = purrr::compact(body_arg_values))
 
     if (!.perform) {
       return (out)
@@ -167,8 +180,8 @@ authorize <- function(req, wrapper, credential) {
   }
 
   if (wrapper$auth$type == "header") {
-    h <- list2(`wrapper$auth$header` := credential)
-    return(req_headers(req, !!! h))
+    h <- list2(!! wrapper$auth$header := credential)
+    return(req_headers(req, !!! h, .redact = wrapper$auth$header))
   }
 }
 

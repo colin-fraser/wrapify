@@ -49,9 +49,6 @@ test_that("Example Anthropic wrapper", {
   anth <- wrapper(
     "https://api.anthropic.com/v1",
     auth = auth_type("header", header = "x-api-key"),
-    default_headers = list(
-      "anthropic-version" = "2023-06-01"
-    ),
     env_var_name = "ANTHROPIC_API_KEY"
   )
 
@@ -62,9 +59,13 @@ test_that("Example Anthropic wrapper", {
       messages =,
       max_tokens = 1024,
       model = "claude-3-5-sonnet-20241022"
-    )
+    ),
+    header_args = function_args(
+      "anthropic-version" = "2023-06-01"
+    ),
+    method = "post"
   )
 
-  message(list(role = "user", content = "Hello there"), .perform = FALSE)
+  message(list(list(role = "user", content = "Hello there")), .perform = FALSE)
 }
 )
