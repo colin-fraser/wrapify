@@ -8,7 +8,7 @@ wrapper(
   base_url,
   default_headers = list(`content-type` = "application/json"),
   default_query_args = list(),
-  auth = auth_spec("none"),
+  auth = auth_type("none"),
   ...
 )
 }

@@ -18,7 +18,7 @@ wrapper <- function(base_url,
                       "content-type" = "application/json"
                     ),
                     default_query_args = list(),
-                    auth = auth_spec("none"),
+                    auth = auth_type("none"),
                     ...) {
   list(
     base_url = base_url,
@@ -33,7 +33,7 @@ get_values_from_environment_as_list <- function(x) {
   if (length(x) == 0) {
     NULL
   } else {
-    env_get_list(nms = names(x), env = caller_env(n=1))
+    env_get_list(nms = names(x), env = caller_env(n = 1))
   }
 }
 
@@ -100,7 +100,7 @@ requestor <- function(wrapper,
     body_args,
     header_args
   )
-  f <- function(..., .credentials = get_credentials_from_wrapper(wrapper),
+  f <- function(.credentials = get_credentials_from_wrapper(wrapper),
                 .perform = perform_by_default,
                 .extract = extract_body_by_default,
                 .extractor = extractor) {
@@ -124,12 +124,12 @@ requestor <- function(wrapper,
     out <- request_from_wrapper(wrapper, .credentials) |>
       req_method(method) |>
       req_url_path_append(glue_url(resource, resource_values)) |>
-      req_url_query(!!! query_payload) |>
-      req_headers(!!! header_values) |>
+      req_url_query(!!!query_payload) |>
+      req_headers(!!!header_values) |>
       do_if(length(body_arg_values) > 0, req_body_json, data = purrr::compact(body_arg_values))
 
     if (!.perform) {
-      return (out)
+      return(out)
     }
 
     out <- req_perform(out)
@@ -188,8 +188,8 @@ authorize <- function(req, wrapper, credential) {
   }
 
   if (wrapper$auth$type == "header") {
-    h <- list2(!! wrapper$auth$header := credential)
-    return(req_headers(req, !!! h, .redact = wrapper$auth$header))
+    h <- list2(!!wrapper$auth$header := credential)
+    return(req_headers(req, !!!h, .redact = wrapper$auth$header))
   }
 }
 
@@ -217,14 +217,6 @@ get_env_var_from_wrapper <- function(wrapper) {
   out
 }
 
-auth_spec <- function(type, header = NULL) {
-  switch(type,
-    "none" = list(type = "none"),
-    "bearer" = list(type = "bearer"),
-    "header" = list(type = "header", header = header)
-  )
-}
-
 
 #' Function arguments
 #'
@@ -236,13 +228,14 @@ auth_spec <- function(type, header = NULL) {
 #'
 #' @examples
 #' simple_wrapper <- wrapper("http://abc.com")
-#' args <- function_args(id =, type = "text")  # `id` will have no default, `type` will have default
-#'                                             # value "text"
+#' args <- function_args(id = , type = "text") # `id` will have no default, `type` will have default
+#' # value "text"
 #' simple_requestor <- requestor(
 #'   wrapper = simple_wrapper,
 #'   resource = "information/{type}/{id}",
 #'   resource_args = args,
-#'   perform_by_default = FALSE)
+#'   perform_by_default = FALSE
+#' )
 #' simple_requestor(id = 123)$url
 #' simple_requestor(id = 123, "hello")$url
 #'

@@ -20,7 +20,7 @@
 #'
 #' # Check the class of the 'result' variable
 #' class(result) # Output: "my_custom_class"
-super_simple_constructor <- function(..., .class = c('supersimpleconstruct', 'list'), .prune = TRUE) {
+super_simple_constructor <- function(..., .class = c("supersimpleconstruct", "list"), .prune = TRUE) {
   args <- function_args(...)
   f <- function(..., .prune = .prune) {
     out <- env_get_list(nms = names(args), default = stop("All arguments must be supplied"))
@@ -33,5 +33,3 @@ super_simple_constructor <- function(..., .class = c('supersimpleconstruct', 'li
   formals(f) <- args
   f
 }
-
-

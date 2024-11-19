@@ -16,13 +16,14 @@ function args. Use this to create arguments for a requestor function.
 }
 \examples{
 simple_wrapper <- wrapper("http://abc.com")
-args <- function_args(id =, type = "text")  # `id` will have no default, `type` will have default
-                                            # value "text"
+args <- function_args(id = , type = "text") # `id` will have no default, `type` will have default
+# value "text"
 simple_requestor <- requestor(
   wrapper = simple_wrapper,
   resource = "information/{type}/{id}",
   resource_args = args,
-  perform_by_default = FALSE)
+  perform_by_default = FALSE
+)
 simple_requestor(id = 123)$url
 simple_requestor(id = 123, "hello")$url
 

@@ -26,13 +26,12 @@ test_that("Example iris requestor", {
   }
 
   expect_equal(iris(1, 2, .extractor = custom_extractor), 150)
-
 })
 
 test_that("Example openai wrapper", {
   openai <- wrapper(
     "https://api.openai.com/v1",
-    auth = auth_spec("bearer")
+    auth = bearer_auth_type()
   )
 
   list_models <- requestor(
@@ -41,8 +40,10 @@ test_that("Example openai wrapper", {
   )
 
   expect_error(list_models(.perform = FALSE), "Wrapper has no default environment variable name")
-  expect_equal(resp_status(list_models(.credentials = Sys.getenv("OPENAI_KEY"), .extract = FALSE)),
-               200)
+  expect_equal(
+    resp_status(list_models(.credentials = Sys.getenv("OPENAI_KEY"), .extract = FALSE)),
+    200
+  )
 })
 
 test_that("Example Anthropic wrapper", {
@@ -56,7 +57,7 @@ test_that("Example Anthropic wrapper", {
     anth,
     "messages",
     body_args = function_args(
-      messages =,
+      messages = ,
       max_tokens = 1024,
       model = "claude-3-5-sonnet-20241022"
     ),
@@ -76,5 +77,4 @@ test_that("Example Anthropic wrapper", {
 
   req2 <- message(body, .perform = FALSE, "anthropic-version" = "2024-01-01")
   expect_equal(req2$headers$`anthropic-version`, "2024-01-01")
-}
-)
+})

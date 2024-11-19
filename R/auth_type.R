@@ -21,7 +21,7 @@ query_auth_type <- function(param_names) {
 #' @export
 #' @describeIn auth_type Bearer token
 bearer_auth_type <- function() {
-  auth_type('bearer')
+  auth_type("bearer")
 }
 
 #' @export
