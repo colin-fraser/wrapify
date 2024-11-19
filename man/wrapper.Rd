@@ -8,7 +8,7 @@ wrapper(
   base_url,
   default_headers = list(`content-type` = "application/json"),
   default_query_args = list(),
-  auth_type = "none",
+  auth = auth_spec("none"),
   ...
 )
 }
@@ -19,7 +19,7 @@ wrapper(
 
 \item{default_query_args}{A named list of default query arguments to include in all API requests.}
 
-\item{auth_type}{The authentication type}
+\item{auth}{The authentication type}
 
 \item{...}{Additional arguments passed to the wrapper object.}
 }

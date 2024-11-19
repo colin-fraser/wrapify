@@ -4,9 +4,9 @@
 #'
 #' @param func The function to document
 #' @param title The title of the function documentation (default: deparse(substitute(func)))
-#' @param description The description of the function being documented (default: "[Add a description here]")
+#' @param description The description of the function being documented (default: "\[Add a description here\]")
 #' @param param_descriptions Description of the parameters of the function, in a named list (default: list())
-#' @param return_description Description of the return value (default: "[Describe the return value here]")
+#' @param return_description Description of the return value (default: "\[Describe the return value here\]")
 #' @param examples Do you want to include examples? (default: FALSE)
 #' @param export Do you want the function to be exported? (default: TRUE)
 #' @param cat if TRUE, this will print the output on screen and return invisibly (default: TRUE)

@@ -10,6 +10,7 @@
 #' @importFrom httr2 request
 #' @importFrom httr2 resp_body_json
 #' @importFrom httr2 resp_is_error
+#' @importFrom methods getFunction
 #' @importFrom purrr imap
 #' @importFrom purrr map
 #' @importFrom rlang %||%

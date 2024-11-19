@@ -48,7 +48,7 @@ test_that("Example openai wrapper", {
 test_that("Example Anthropic wrapper", {
   anth <- wrapper(
     "https://api.anthropic.com/v1",
-    auth = auth_type("header", header = "x-api-key"),
+    auth = header_auth_type(header = "x-api-key"),
     env_var_name = "ANTHROPIC_API_KEY"
   )
 
@@ -66,6 +66,15 @@ test_that("Example Anthropic wrapper", {
     method = "post"
   )
 
-  message(list(list(role = "user", content = "Hello there")), .perform = FALSE)
+  body <- list(list(role = "user", content = "Hello there"))
+
+  req <- message(body, .perform = FALSE)
+
+  expect_equal(req$body$data$messages, body)
+  expect_equal(req$body$data$model, "claude-3-5-sonnet-20241022")
+  expect_equal(req$headers$`anthropic-version`, "2023-06-01")
+
+  req2 <- message(body, .perform = FALSE, "anthropic-version" = "2024-01-01")
+  expect_equal(req2$headers$`anthropic-version`, "2024-01-01")
 }
 )

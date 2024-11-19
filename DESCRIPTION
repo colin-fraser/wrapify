@@ -7,19 +7,18 @@ Description: What the package does (one paragraph).
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2
 Imports: 
-    getPass,
+    glue,
     httr2,
-    jsonlite,
+    methods,
     purrr,
-    rlang,
-    urltools
+    rlang
 Suggests: 
     knitr,
     rmarkdown,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    jsonlite
 Config/testthat/edition: 3
-VignetteBuilder: knitr
 URL: https://github.com/colin-fraser/wrapify
 BugReports: https://github.com/colin-fraser/wrapify/issues
