@@ -1,6 +1,6 @@
 Package: wrapify
 Title: Quickly create API wrappers
-Version: 0.0.0.9000
+Version: 0.1.0
 Authors@R: 
     person("Colin", "Fraser", , "colin.r.fraser@gmail.com", role = c("aut", "cre"))
 Description: What the package does (one paragraph).
