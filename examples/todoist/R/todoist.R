@@ -1,20 +1,8 @@
 todoist <- wrapify::wrapper(
-  "api.todoist.com",
-  "/rest/v2",
-  auth_type = 'bearer',
-  key_management = "env",
-  env_var_name = "TODOIST_API_KEY",
-  credential_setter = "set_todoist_key"
+  "https://api.todoist.com/rest/v2",
+  auth = bearer_auth_type(),
+  env_var_name = "TODOIST_API_KEY"
 )
-
-#' Set the todoist key
-#'
-#'
-#' @param credentials Value of the key
-#'
-#' @return Logical
-#' @export
-set_todoist_key <- wrapify::credential_setter(todoist)
 
 #' Get projects
 #'
@@ -29,10 +17,22 @@ set_todoist_key <- wrapify::credential_setter(todoist)
 #'
 #' @return a list of projects
 #' @export
-get_projects <- wrapify::requestor(todoist, "projects")
+get_projects <- wrapify::requestor(
+  todoist,
+  "projects",
+  extractor = \(x) {
+    httr2::resp_body_json(x) |>
+      purrr::map_depth(2, \(x) if (is.null(x)) NA else x) |>
+      purrr::map(tibble::as_tibble) |>
+      purrr::list_rbind()
+  })
 
 #' @export
-get_project <- wrapify::requestor(todoist, 'projects/{project_id}', resource_args = wrapify::function_args(project_id = ))
+get_project <- wrapify::requestor(
+  todoist,
+  'projects/{project_id}',
+  resource_args = wrapify::function_args(project_id = )
+  )
 
 #' @export
 create_task <- wrapify::requestor(todoist, "tasks", method = "post",
