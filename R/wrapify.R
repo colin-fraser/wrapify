@@ -205,7 +205,7 @@ get_credentials_from_wrapper <- function(wrapper) {
 
 get_env_var_from_wrapper <- function(wrapper) {
   if (is.null(wrapper$env_var_name)) {
-    stop("Wrapper has no default environment variable name")
+    stop("Wrapper has no default environment variable name and no credential was supplied.")
   }
 
   out <- Sys.getenv(wrapper$env_var_name)
