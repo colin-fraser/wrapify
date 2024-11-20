@@ -5,40 +5,21 @@
 \title{Initialize a wrapper for an API}
 \usage{
 wrapper(
-  hostname,
-  base_path,
-  auth_type = "none",
-  key_management = c("none", "environment", "ask"),
-  scheme = "https",
-  user_agent = "wrapify",
-  default_content_type = "application/json",
-  default_query_args = NULL,
-  env_var_name = NULL,
-  credential_setter = NULL,
-  credential_type = c("json", "string"),
+  base_url,
+  default_headers = list(`content-type` = "application/json"),
+  default_query_args = list(),
+  auth = auth_type("none"),
   ...
 )
 }
 \arguments{
-\item{hostname}{The API hostname (e.g., "api.example.com")}
+\item{base_url}{The base URL}
 
-\item{base_path}{The base path for the API (e.g., "/v1")}
-
-\item{auth_type}{The type of authentication to use (default: "none"). Accepts "none", "bearer", or "query".}
-
-\item{key_management}{The method for managing API keys (default: "none"). Accepts "none", "environment", or "ask".}
-
-\item{scheme}{The scheme to use for API requests (default: "https"). Accepts "http" or "https".}
-
-\item{user_agent}{The user agent string to use for API requests (default: "wrapify").}
-
-\item{default_content_type}{The default content type for API requests (default: "application/json").}
+\item{default_headers}{The default headers for API requests}
 
 \item{default_query_args}{A named list of default query arguments to include in all API requests.}
 
-\item{env_var_name}{The name of the environment variable that stores the API key (required when key_management is set to "environment").}
-
-\item{credential_setter}{The name of the credential_setter function. This is used in the error message shown to the user when the credential can't be found.}
+\item{auth}{The authentication type}
 
 \item{...}{Additional arguments passed to the wrapper object.}
 }

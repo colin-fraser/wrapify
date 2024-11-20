@@ -4,9 +4,9 @@
 #'
 #' @param func The function to document
 #' @param title The title of the function documentation (default: deparse(substitute(func)))
-#' @param description The description of the function being documented (default: "[Add a description here]")
+#' @param description The description of the function being documented (default: "\[Add a description here\]")
 #' @param param_descriptions Description of the parameters of the function, in a named list (default: list())
-#' @param return_description Description of the return value (default: "[Describe the return value here]")
+#' @param return_description Description of the return value (default: "\[Describe the return value here\]")
 #' @param examples Do you want to include examples? (default: FALSE)
 #' @param export Do you want the function to be exported? (default: TRUE)
 #' @param cat if TRUE, this will print the output on screen and return invisibly (default: TRUE)
@@ -61,11 +61,21 @@ generate_return_section <- function(return_description) {
 }
 
 generate_params_section <- function(func_params, param_descriptions) {
+  builtin_descriptions <- c(
+    ".credentials" = "Credentials to use, e.g. an API key",
+    ".perform" = "Perform the request? If FALSE, an httr2 request object is returned.",
+    ".extract" = "Extract the data? If FALSE, an httr2::response object is returned",
+    ".extractor" = "A function which takes an httr2::response object and returns the desired data"
+  )
   params_section <- unlist(lapply(names(func_params), function(param) {
     param_desc <- if (param %in% names(param_descriptions)) {
       param_descriptions[[param]]
-    } else {
-      paste("Description of", param)
+    } else if (param %in% c('.credentials', '.perform', '.extract', '.extractor')) {
+      builtin_descriptions[param]
+    }
+
+    else {
+      paste0("[Description of ", param, "]")
     }
     generate_section(tag = "param", content = paste(param, param_desc), line_breaks = c(0, 0))
   }))

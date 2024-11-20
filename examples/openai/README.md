@@ -11,7 +11,7 @@ constructing simple API wrappers. Install with `devtools::install_github("colin-
 
 ``` r
 library(openaiwrapper)
-quick_chat_completion("What is 20 squared?", token = getPass::getPass("OpenAI API Key"))
+quick_chat_completion("What is 20 squared?")
 #> $id
 #> [1] "chatcmpl-76uJfR0gqQn3qyKwZa6WyC3n5i5bZ"
 #> 

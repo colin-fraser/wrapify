@@ -20,11 +20,11 @@ generate_roxygen_comment(
 
 \item{title}{The title of the function documentation (default: deparse(substitute(func)))}
 
-\item{description}{The description of the function being documented (default: "\link{Add a description here}")}
+\item{description}{The description of the function being documented (default: "[Add a description here]")}
 
 \item{param_descriptions}{Description of the parameters of the function, in a named list (default: list())}
 
-\item{return_description}{Description of the return value (default: "\link{Describe the return value here}")}
+\item{return_description}{Description of the return value (default: "[Describe the return value here]")}
 
 \item{examples}{Do you want to include examples? (default: FALSE)}
 

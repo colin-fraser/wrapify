@@ -31,72 +31,67 @@ devtools::install_github("colin-fraser/wrapify")
 
 ## A simple example
 
-Here's how to construct a wrapper around the OpenAI API. A more complete implementation of this is found in the [`examples/openai`](examples/openai) directory. This is the full code for a minimal package that hits the Chat Completion resource:
+Here's how to construct a wrapper around the OpenAI API. A more complete implementation of this is found in the directory. This is the full code for a minimal wrapper that hits the [`models` resource](https://platform.openai.com/docs/api-reference/models/list), which lists the available models.
 
-```{r eval=FALSE}
+```{r eval=TRUE}
+library(wrapify)
 openai_wrapper <- wrapper(
-  hostname = "api.openai.com",
-  base_path = "/v1",
-  auth_type = bearer_auth_type(),
-  key_management = "env",
+  base_url = "https://api.openai.com/v1",
+  auth = bearer_auth_type(),
   env_var_name = "OPENAI_KEY"
 )
 
-#' @export
-chat_message <- super_simple_constructor(content = , role = 'user')
+list_models <- requestor(openai_wrapper, "models")
 
-#' @export
-chat_completion <- requestor(
-  wrapper = openai_wrapper,
-  resource = "chat/completions",
-  method = "post",
-  body_args = function_args(
-    messages = ,  # specifying an empty value forces the argument to be required
-    model = "gpt-3.5-turbo",  # setting a default value for an argument
-    temperature = NULL,  # making an argument optional
-    n = 1,
-    stop = NULL,
-    max_tokens = NULL,
-    presence_penalty = NULL,
-    frequency_penalty = NULL,
-    logit_bias = NULL,
-    user = NULL
-  )
-)
+list_models()$data[[1]]  # there are a lot of models. Let's just look at the first one.
 ```
 
-This would create an R package with two exported functions, `chat_completion` which hits the OpenAI API and `chat_message` which constructs `message` objects as specified in the API documentation. See below for more details.
+One can also provide a custom `extractor` function which takes the retrieved `response` object and outputs data in a desired format.
+
+```{r}
+list_models <- requestor(
+  openai_wrapper, 
+  "models",
+  extractor = \(x) {
+    # takes an httr2 response x and returns a data.frame
+    data.frame(do.call(cbind, httr2::resp_body_json(x, simplifyVector = TRUE)$data))
+  }
+)
+list_models()
+```
+
+## More depth
 
 ### Wrappers
 
-We start by creating a wrapper, which stores some baseline properties of the API.
+We start by creating a wrapper, which stores some basic properties of the API.
 
 ```{r wrapper}
 library(wrapify)
 openai_wrapper <- wrapper(
-  hostname = "api.openai.com",
-  base_path = "/v1",
-  auth_type = bearer_auth_type(),
-  key_management = "env",
+  base_url = "https://api.openai.com/v1",
+  auth = bearer_auth_type(),
   env_var_name = "OPENAI_KEY"
 )
 ```
 
-This specifies that we will be building a wrapper for an API hosted at `api.openai.com/v1`, that the API uses Bearer tokens, and that we expect the user to store their API key in an environment variable called `"OPENAI_KEY"`.
+This specifies that we will be building a wrapper for an API located at `https://api.openai.com/v1`, that the API uses Bearer tokens, and that we expect the user to store their API key in an environment variable called `"OPENAI_KEY"`.
 
 ### Requestors
 
-Now we can create requestors using the `requestor` function. Here's one that implements the [Chat Complation](https://platform.openai.com/docs/guides/chat) request. 
+Now we can create requestors using the `requestor` function. Here's one that hits the [Chat Complation](https://platform.openai.com/docs/guides/chat) endpoint. 
 
 ```{r chat_completion}
+
+#' @export
 chat_completion <- requestor(
   wrapper = openai_wrapper,
   resource = "chat/completions",
   method = "post",
   body_args = function_args(
-    messages = ,  # specifying an empty value forces the argument to be required
-    model = "gpt-3.5-turbo",  # setting a default value for an argument
-    temperature = NULL,  # making an argument optional
+    messages = , # specifying an empty value forces the argument to be required
+    model = "gpt-3.5-turbo", # setting a default value for an argument
+    temperature = NULL, # making an argument optional
     n = 1,
     stop = NULL,
     max_tokens = NULL,
@@ -104,21 +99,25 @@ chat_completion <- requestor(
     frequency_penalty = NULL,
     logit_bias = NULL,
     user = NULL
-  )
+  ),
+  extractor = \(x) {
+    httr2::resp_body_json(x)$choices[[1]]$message$content
+  }
 )
+
+chat_completion(list(list(role = "user", content = "hi there")))
 ```
 
-This creates a requestor function called _chat_completion_ which makes the specified API call. The resulting function has arguments specified by the `body_args` argument above.
+This creates a requestor function called _chat_completion_ which makes the specified API call, and extracts the text of the response. The resulting function has arguments specified by the `body_args` argument above.
 
 ```{r}
 str(chat_completion)
 ```
-Calling this function sends the specified request to the API. We can check how this works without actually sending the request by setting `action = 'dryrun'`.
+Calling this function sends the specified request to the API. We can check how this works without actually sending the request by setting `.perform = FALSE`. This will return the `httr2` `request` object that has been created.
 
 ```{r}
-chat_completion("hello there!", action = "dryrun", credentials = "[API KEY]")
+chat_completion("hello there!", .perform = FALSE)
 ```
-
 
 ### Simple Constructs
 
@@ -144,7 +143,7 @@ chat_completion(list(list(role = "user", content = "hello, how are you?")))
 To make this easier, the super_simple_constructor function creates constructors of named lists.
 
 ```{r}
-chat_message <- super_simple_constructor(content = , role = 'user')
+chat_message <- super_simple_constructor(content = , role = "user")
 ```
 
 This creates a function called `chat_message` that returns a named list in the right format.

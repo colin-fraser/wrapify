@@ -1,11 +1,8 @@
 #' @import wrapify
 openai <- wrapper(
-  hostname = "api.openai.com",
-  base_path = "/v1",
-  auth_type = bearer_auth_type(),
-  key_management = "env",
-  env_var_name = "OPENAI_KEY",
-  credential_type = "string"
+  base_url = "https://api.openai.com/v1",
+  auth = bearer_auth_type(),
+  env_var_name = "OPENAI_KEY"
 )
 
 #' List models
@@ -20,9 +17,12 @@ openai <- wrapper(
 #'
 #' @return A list of available models
 #' @export
-list_models <- requestor(openai, "models",
-                         post_processor = \(x) {
-                           x$data |>
+list_models <- requestor(openai,
+                         "models",
+                         extractor = \(x) {
+                           x |>
+                             httr2::resp_body_json() |>
+                             purrr::pluck("data") |>
                              purrr::map(tibble::as_tibble) |>
                              purrr::list_rbind() |>
                              dplyr::arrange(id)
@@ -115,15 +115,6 @@ quick_chat_completion <- function(user_message, system_message = NULL, ...) {
 #' @export
 chat_message <- super_simple_constructor(content =, role = "user", name = NULL)
 
-#' Save an API key to an environment variable
-#'
-#' Saves the key
-#'
-#' @param credentials the value of the key to save. Asks the user by default.
-#'
-#' @return A logical vector as per Sys.setenv
-#' @export
-set_api_key <- credential_setter(openai)
 
 #' Get Embeddings
 #'
