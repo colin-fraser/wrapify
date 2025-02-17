@@ -6,10 +6,10 @@
 \usage{
 retrieve_model(
   model,
-  ...,
-  credentials = default_credentials(wrapper),
-  action = default_action,
-  decode_if_success = decode_if_success_default_value
+  .credentials = get_credentials_from_wrapper(wrapper),
+  .perform = perform_by_default,
+  .extract = extract_body_by_default,
+  .extractor = extractor
 )
 }
 \arguments{
