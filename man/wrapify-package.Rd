@@ -6,7 +6,7 @@
 \alias{wrapify-package}
 \title{wrapify: Quickly create API wrappers}
 \description{
-What the package does (one paragraph).
+Declaratively produce API wrappers in a few lines of code.
 }
 \seealso{
 Useful links:

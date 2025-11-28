@@ -191,16 +191,48 @@ authorize <- function(req, wrapper, credential) {
     h <- list2(!!wrapper$auth$header := credential)
     return(req_headers(req, !!!h, .redact = wrapper$auth$header))
   }
+
+  if (wrapper$auth$type == "query") {
+    required_params <- wrapper$auth$param_names
+    if (!all(sort(required_params) == sort(names(credential)))) {
+      stop(glue::glue("credential must be a list with names: {paste(required_params, collapse = ', ')}"))
+    }
+    return(req_url_query(req, !!!credential))
+  }
 }
 
 
-
+# CURRENTLY ONLY SUPPORTS STORING CREDENTIALS IN AN ENVIRONMENT VARIABLE
 get_credentials_from_wrapper <- function(wrapper) {
   switch(wrapper$auth$type,
     "none" = NULL,
     "bearer" = get_env_var_from_wrapper(wrapper),
-    "header" = get_env_var_from_wrapper(wrapper)
+    "header" = get_env_var_from_wrapper(wrapper),
+    "query" = read_key_value_list(get_env_var_from_wrapper(wrapper), wrapper$auth$param_names)
   )
+}
+
+read_key_value_list <- function(x, param_names) {
+  # For single-parameter query auth, allow plain string in environment variable
+  # For multi-parameter, require JSON format
+  if (length(param_names) == 1) {
+    # Single parameter: treat as plain string
+    result <- list(x)
+    names(result) <- param_names
+    return(result)
+  } else {
+    # Multiple parameters: parse as JSON
+    tryCatch(
+      jsonlite::fromJSON(x, simplifyVector = FALSE),
+      error = function(e) {
+        stop(glue::glue(
+          "For multi-parameter query auth, credentials must be stored as JSON. ",
+          "Expected format: '{{\"{paste(param_names, collapse = '\": \"...\", \"')}}\": \"...\"}}'. ",
+          "Error: {e$message}"
+        ))
+      }
+    )
+  }
 }
 
 get_env_var_from_wrapper <- function(wrapper) {
