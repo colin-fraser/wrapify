@@ -160,7 +160,8 @@ get_extractor <- function(x) {
 
 infer_extractor <- function(resp) {
   f <- switch(resp_content_type(resp),
-    "application/json" = resp_body_json
+    "application/json" = resp_body_json,
+    \(x) x
   )
   f(resp)
 }

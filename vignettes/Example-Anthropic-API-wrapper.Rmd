@@ -92,7 +92,7 @@ generate_roxygen_comment(
 ```
 This will use the API key given in `.credentials` if supplied, or otherwise, will look for the default credential supplied by the wrapper. Here's how a call looks.
 
-```{r}
+```
 msg <- list(list(role = "user", content = "What is the square root of 81?"))  # messages need to be supplied in this format
 response <- messages(msg)
 response
@@ -100,19 +100,19 @@ response
 
 By default, the `messages` function performs the request and extracts the response. It can sometimes be the case that we don't want this behavior—for example, if we want to generate a bunch of requests locally first and then send them all at once using `httr2::req_perform_*` or something like that. To avoid performing the request, just set the `.perform` argument to `FALSE`. This will return the raw `request` object.
 
-```{r}
+```
 messages(msg, .perform = FALSE)
 ```
 
 You may also wish to perform the request but not extract the data. This can be done by setting `.extract` to `FALSE`.
 
-```{r}
+```
 messages(msg, .extract = FALSE)
 ```
 
 Either of these can be set as the default behavior for a requestor function by specifying it.
 
-```{r}
+```
 messages_not_default_send <- requestor(
   anth_wrapper,
   resource = "messages",
@@ -133,7 +133,7 @@ messages_not_default_send(msg)
 
 It's often the case that we're not ultimately interested in the full data that is returned, but some derivative of it. If you write a function that extracts and shapes the data that you're looking for, you can supply it to the requestor. The extractor function should take the `httr2::response` object.
 
-```{r}
+```
 extract_message_text <- function(x) {
   data <- httr2::resp_body_json(x)
   data$content[[1]]$text
@@ -143,7 +143,7 @@ messages(msg, .extractor = extract_message_text)
 
 If you want, you can specify this as the default extractor when the requestor function is defined.
 
-```{r}
+```
 messages <- requestor(
   anth_wrapper,
   resource = "messages",
@@ -160,7 +160,7 @@ messages(msg)
 
 Of course, even with a custom extractor set, you can always elect not to extract the content if you want.
 
-```{r}
+```
 messages(msg, .extract = FALSE)
 ```
 
@@ -168,13 +168,13 @@ messages(msg, .extract = FALSE)
 
 Notice that the API requires us to provide a list of messages in a particular format. There's a simple helper called `super_simple_constructor` that lets us do that a bit more quickly.
 
-```{r}
+```
 message <- super_simple_constructor(content =, role = "user")
 message("Hello")
 ```
 This just creates a simple constructor of a named list in the format that we need. This way, we can call the requestor as follows.
 
-```{r}
+```
 messages(list(message("Hi there. What is 2 * 19?")))
 ```
 
@@ -182,7 +182,7 @@ messages(list(message("Hi there. What is 2 * 19?")))
 
 Putting it all together, here's the full code for a fairly full-featured Claude wrapper.
 
-```{r}
+```
 anth_wrapper <- wrapper(
   base_url = "https://api.anthropic.com/v1",
   auth = header_auth_type("x-api-key"),

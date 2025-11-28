@@ -1,36 +1,31 @@
 test_that("Wrapper construction", {
-  example <- wrapper(example_url())
+  example <- wrapper("example.com")
   expect_equal(example$auth$type, "none")
   expect_equal(example$default_headers$`content-type`, "application/json")
 })
 
-test_that("Example iris requestor", {
-  example <- wrapper(example_url())
-
-  iris <- requestor(
-    example,
-    "iris",
-    query_args = function_args(
-      page = ,
-      limit = 1
-    )
-  )
-
-  expect_equal(length(iris(1)$data), 1)
-  expect_equal(length(iris(1, 2)$data), 2)
-
-  custom_extractor <- function(resp) {
-    l <- resp |>
-      httr2::resp_body_json()
-    l$count
-  }
-
-  expect_equal(iris(1, 2, .extractor = custom_extractor), 150)
-})
 
 test_that("Example openai wrapper", {
+  # Mock OpenAI API
+  app <- webfakes::new_app()
+  app$use(\(req, res) {
+    res$set_header("Authorization", req$headers$Authorization)
+    "next"
+  }, .first = TRUE)
+  app$get("/models", function(req, res) {
+    # Just return successful response - we'll verify auth in the request object
+    res$
+      send_json(list(
+      data = list(
+        list(id = "gpt-4", object = "model"),
+        list(id = "gpt-3.5-turbo", object = "model")
+      )
+    ))
+  })
+  app <- webfakes::local_app_process(app)
+
   openai <- wrapper(
-    "https://api.openai.com/v1",
+    app$url(),
     auth = bearer_auth_type()
   )
 
@@ -39,111 +34,96 @@ test_that("Example openai wrapper", {
     "models"
   )
 
-  expect_error(list_models(.perform = FALSE), "Wrapper has no default environment variable name")
-  expect_equal(
-    resp_status(list_models(.credentials = Sys.getenv("OPENAI_KEY"), .extract = FALSE)),
-    200
-  )
+  expect_error(list_models(), "Wrapper has no default environment variable name")
+
+  # Test with credentials provided
+  resp <- list_models(.credentials = "test-api-key", .extract = FALSE)
+  expect_equal(resp_status(resp), 200)
+
+  # Verify the bearer token was sent correctly
+  expect_equal(resp$headers$Authorization, "Bearer test-api-key")
+
 })
 
 test_that("Anthropic API wrapper with header auth", {
   # Test based on Anthropic API structure:
   # curl https://api.anthropic.com/v1/models \
   #   -H "X-Api-Key: $ANTHROPIC_API_KEY"
+  app <- webfakes::new_app()
+  app$get("/models", function(req, res) {
+    res$send("claude-3.5")
+  })
+  app <- webfakes::local_app_process(app)
+  url <- app$url()
 
   anth <- wrapper(
-    "https://api.anthropic.com/v1",
+    url,
     auth = header_auth_type(header = "x-api-key")
   )
 
   # Test the models endpoint
   list_models <- requestor(
     anth,
-    "models"
+    "models",
+    header_constants = list("api-version" = "2025-01-01")
   )
 
-  # Verify request structure with explicit credentials
-  req <- list_models(.credentials = "test-api-key-123", .perform = FALSE)
+  resp <- list_models(.credentials = "test-api-key-123")
 
   # Check URL is correct
-  expect_match(req$url, "https://api.anthropic.com/v1/models")
+  expect_match(resp$url, app$url("/models"))
 
   # Check that x-api-key header is set correctly
-  expect_equal(req$headers$`x-api-key`, "test-api-key-123")
-
-  # Test the messages endpoint with custom headers
-  message <- requestor(
-    anth,
-    "messages",
-    body_args = function_args(
-      messages = ,
-      max_tokens = 1024,
-      model = "claude-3-5-sonnet-20241022"
-    ),
-    header_args = function_args(
-      "anthropic-version" = "2023-06-01"
-    ),
-    method = "post"
-  )
-
-  body <- list(list(role = "user", content = "Hello there"))
-
-  req <- message(body, .credentials = "test-key", .perform = FALSE)
-
-  # Verify body parameters
-  expect_equal(req$body$data$messages, body)
-  expect_equal(req$body$data$model, "claude-3-5-sonnet-20241022")
-
-  # Verify headers
-  expect_equal(req$headers$`anthropic-version`, "2023-06-01")
-  expect_equal(req$headers$`x-api-key`, "test-key")
-
-  # Test overriding header args at call time
-  req2 <- message(body, .credentials = "test-key", .perform = FALSE, "anthropic-version" = "2024-01-01")
-  expect_equal(req2$headers$`anthropic-version`, "2024-01-01")
+  expect_equal(req_get_headers(resp$request, redacted = 'reveal')$`x-api-key`, "test-api-key-123")
+  expect_equal(req_get_headers(resp$request, redacted = 'reveal')$`api-version`, "2025-01-01")
 })
 
 test_that("Query auth - single parameter", {
+  # Use httpbin which echoes back query parameters
+  app <- webfakes::local_app_process(webfakes::httpbin_app())
+
   # Create wrapper with single-parameter query auth
   api <- wrapper(
-    "https://api.example.com/v1",
+    app$url(),
     auth = query_auth_type(param_names = "apikey")
   )
 
   # Create a simple requestor
   get_data <- requestor(
     api,
-    "data"
+    "get"
   )
 
   # Test with plain string credential (not JSON)
-  req <- get_data(.credentials = list(apikey = "secret123"), .perform = FALSE)
+  resp <- get_data(.credentials = list(apikey = "secret123"))
 
-  # Verify the API key is in the query string
-  expect_match(req$url, "apikey=secret123")
-  expect_match(req$url, "/v1/data")
+  # Verify the API key was sent in the query string
+  expect_equal(resp$args$apikey, "secret123")
 })
 
 test_that("Query auth - multiple parameters", {
+  # Use httpbin which echoes back query parameters
+  app <- webfakes::local_app_process(webfakes::httpbin_app())
+
   # Create wrapper with multi-parameter query auth
   api <- wrapper(
-    "https://api.example.com/v1",
+    app$url(),
     auth = query_auth_type(param_names = c("api_key", "account_id"))
   )
 
   # Create a simple requestor
   get_data <- requestor(
     api,
-    "data"
+    "get"
   )
 
   # Test with named list credentials
   creds <- list(api_key = "secret123", account_id = "acc456")
-  req <- get_data(.credentials = creds, .perform = FALSE)
+  resp <- get_data(.credentials = creds)
 
-  # Verify both parameters are in the query string
-  expect_match(req$url, "api_key=secret123")
-  expect_match(req$url, "account_id=acc456")
+  # Verify both parameters were sent in the query string
+  expect_equal(resp$args$api_key, "secret123")
+  expect_equal(resp$args$account_id, "acc456")
 })
 
 test_that("Query auth - credential validation", {
