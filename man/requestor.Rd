@@ -17,8 +17,6 @@ requestor(
   header_constants = NULL,
   method = "get",
   content_type = NULL,
-  body_type = "json",
-  additional_request_args = NULL,
   perform_by_default = TRUE,
   extract_body_by_default = TRUE,
   extractor = "infer"
@@ -48,10 +46,6 @@ requestor(
 \item{method}{The HTTP method to use for the API request (default: "get"). Accepts "get", "post", "put", "delete", etc.}
 
 \item{content_type}{The content type for the API request (default: determined by the wrapper's default_content_type).}
-
-\item{body_type}{The type of request body to use for the API request (default: 'json').}
-
-\item{additional_request_args}{Additional arguments to be passed to the request object.}
 
 \item{perform_by_default}{should the returned function try to perform the request by default?}
 

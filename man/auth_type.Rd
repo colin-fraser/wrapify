@@ -25,7 +25,7 @@ header_auth_type(header)
 \item{header}{the name of the header where the credential goes}
 }
 \value{
-a simple named list
+a wrapify_auth object
 }
 \description{
 Functions for declaring different kinds of authorization for a wrapper.

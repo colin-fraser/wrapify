@@ -20,12 +20,15 @@ wrapper <- function(base_url,
                     default_query_args = list(),
                     auth = auth_type("none"),
                     ...) {
-  list(
-    base_url = base_url,
-    default_headers = default_headers,
-    default_query_args = default_query_args,
-    auth = auth,
-    ...
+  structure(
+    list(
+      base_url = base_url,
+      default_headers = default_headers,
+      default_query_args = default_query_args,
+      auth = auth,
+      ...
+    ),
+    class = c("wrapify_wrapper", "list")
   )
 }
 
@@ -64,8 +67,6 @@ do_if <- function(x, p, f, ...) {
 #' @param header_constants A named list of constants to appear in headers.
 #' @param method The HTTP method to use for the API request (default: "get"). Accepts "get", "post", "put", "delete", etc.
 #' @param content_type The content type for the API request (default: determined by the wrapper's default_content_type).
-#' @param body_type The type of request body to use for the API request (default: 'json').
-#' @param additional_request_args Additional arguments to be passed to the request object.
 #' @param perform_by_default should the returned function try to perform the request by default?
 #' @param extract_body_by_default If true, the value will be extracted from the response and returned.
 #'   Otherwise, the response is returned.
@@ -88,8 +89,6 @@ requestor <- function(wrapper,
                       header_constants = NULL,
                       method = "get",
                       content_type = NULL,
-                      body_type = "json",
-                      additional_request_args = NULL,
                       perform_by_default = TRUE,
                       extract_body_by_default = TRUE,
                       extractor = "infer") {
@@ -103,12 +102,12 @@ requestor <- function(wrapper,
   f <- function(.credentials = get_credentials_from_wrapper(wrapper),
                 .perform = perform_by_default,
                 .extract = extract_body_by_default,
-                .extractor = extractor) {
+                .extractor = extractor,
+                .additional_request_args = list2()) {
     for (arg in fn_fmls_syms()) {
       # TODO: get required argument checking to work
       check_required(arg)
     }
-
 
     # get provided argument values as lists
     query_arg_values <- get_values_from_environment_as_list(c(query_args, wrapper$default_query_args))
@@ -126,13 +125,13 @@ requestor <- function(wrapper,
       req_url_path_append(glue_url(resource, resource_values)) |>
       req_url_query(!!!query_payload) |>
       req_headers(!!!header_values) |>
-      do_if(length(body_arg_values) > 0, req_body_json, data = purrr::compact(body_arg_values))
+      do_if(length(body_arg_values) > 0, req_body_json, data = purrr::compact(body_arg_values)) |>
+      do_if(!is.null(content_type), req_headers, "content-type" = content_type)
 
     if (!.perform) {
       return(out)
     }
-
-    out <- req_perform(out)
+    out <- exec(req_perform, req = out, !!!.additional_request_args)
 
     if (.extract) {
       extractor <- get_extractor(.extractor)
@@ -275,4 +274,74 @@ get_env_var_from_wrapper <- function(wrapper) {
 #' @export
 function_args <- function(...) {
   rlang::pairlist2(...)
+}
+
+#' Format a wrapify wrapper object
+#'
+#' @param x A wrapify_wrapper object
+#' @param ... Additional arguments (unused)
+#'
+#' @return A character vector representing the wrapper
+#' @export
+format.wrapify_wrapper <- function(x, ...) {
+  auth_desc <- format_auth(x$auth)
+
+  lines <- c(
+    "<wrapify_wrapper>",
+    paste0("  Base URL: ", x$base_url),
+    paste0("  Auth: ", auth_desc)
+  )
+
+  # Add default headers if present
+  if (length(x$default_headers) > 0) {
+    header_str <- paste(names(x$default_headers), x$default_headers, sep = ": ", collapse = ", ")
+    lines <- c(lines, paste0("  Default headers: ", header_str))
+  }
+
+  # Add default query args if present
+  if (length(x$default_query_args) > 0) {
+    query_str <- paste(names(x$default_query_args), x$default_query_args, sep = "=", collapse = ", ")
+    lines <- c(lines, paste0("  Default query args: ", query_str))
+  }
+
+  # Add env_var_name if present
+  if (!is.null(x$env_var_name)) {
+    lines <- c(lines, paste0("  Env var: ", x$env_var_name))
+  }
+
+  lines
+}
+
+#' Print a wrapify wrapper object
+#'
+#' @param x A wrapify_wrapper object
+#' @param ... Additional arguments passed to format
+#'
+#' @return Invisibly returns the original object
+#' @export
+print.wrapify_wrapper <- function(x, ...) {
+  cat(format(x, ...), sep = "\n")
+  invisible(x)
+}
+
+# Helper function to format auth objects
+format_auth <- function(auth) {
+  if (is.null(auth) || auth$type == "none") {
+    return("none")
+  }
+
+  if (auth$type == "bearer") {
+    return("bearer token")
+  }
+
+  if (auth$type == "header") {
+    return(paste0("header (", auth$header, ")"))
+  }
+
+  if (auth$type == "query") {
+    params <- paste(auth$param_names, collapse = ", ")
+    return(paste0("query (", params, ")"))
+  }
+
+  auth$type
 }

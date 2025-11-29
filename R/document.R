@@ -65,12 +65,13 @@ generate_params_section <- function(func_params, param_descriptions) {
     ".credentials" = "Credentials to use, e.g. an API key",
     ".perform" = "Perform the request? If FALSE, an httr2 request object is returned.",
     ".extract" = "Extract the data? If FALSE, an httr2::response object is returned",
-    ".extractor" = "A function which takes an httr2::response object and returns the desired data"
+    ".extractor" = "A function which takes an httr2::response object and returns the desired data",
+    ".additional_request_args" = "Additional arguments to pass to req_perform() (e.g., list(timeout = 30))"
   )
   params_section <- unlist(lapply(names(func_params), function(param) {
     param_desc <- if (param %in% names(param_descriptions)) {
       param_descriptions[[param]]
-    } else if (param %in% c('.credentials', '.perform', '.extract', '.extractor')) {
+    } else if (param %in% c('.credentials', '.perform', '.extract', '.extractor', '.additional_request_args')) {
       builtin_descriptions[param]
     }
 

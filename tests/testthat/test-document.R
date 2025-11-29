@@ -15,7 +15,7 @@ test_that("generate_roxygen_comment returns correct template with default values
     sep = "\n"
   )
 
-  expect_equal(generate_roxygen_comment(test_function), expected_output)
+  expect_equal(generate_roxygen_comment(test_function, cat = FALSE), expected_output)
 })
 
 test_that("generate_roxygen_comment returns correct template with custom values", {
@@ -43,7 +43,8 @@ test_that("generate_roxygen_comment returns correct template with custom values"
       x = "The first number.",
       y = "The second number."
     ),
-    return_description = "The sum of the two input numbers."
+    return_description = "The sum of the two input numbers.",
+    cat = FALSE
   )
 
   expect_equal(roxygen_comment_string, expected_output)
@@ -64,7 +65,7 @@ test_that("generate_roxygen_comment returns correct template for a function with
     sep = "\n"
   )
 
-  expect_equal(generate_roxygen_comment(test_function), expected_output)
+  expect_equal(generate_roxygen_comment(test_function, cat = FALSE), expected_output)
 })
 
 test_that("generate_roxygen_comment returns correct template without examples", {
@@ -93,7 +94,8 @@ test_that("generate_roxygen_comment returns correct template without examples", 
       y = "The second number."
     ),
     return_description = "The sum of the two input numbers.",
-    examples = FALSE
+    examples = FALSE,
+    cat = FALSE
   )
 
   expect_equal(roxygen_comment_string, expected_output)
