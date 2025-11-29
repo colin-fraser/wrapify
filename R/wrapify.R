@@ -194,6 +194,12 @@ authorize <- function(req, wrapper, credential) {
 
   if (wrapper$auth$type == "query") {
     required_params <- wrapper$auth$param_names
+
+    # For single-parameter query auth, accept plain string (like bearer/header auth)
+    if (length(required_params) == 1 && !is.list(credential)) {
+      credential <- setNames(list(credential), required_params)
+    }
+
     if (!all(sort(required_params) == sort(names(credential)))) {
       stop(glue::glue("credential must be a list with names: {paste(required_params, collapse = ', ')}"))
     }

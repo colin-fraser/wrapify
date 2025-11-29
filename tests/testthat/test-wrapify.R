@@ -137,7 +137,7 @@ test_that("Anthropic API wrapper with header auth", {
   expect_equal(req_get_headers(resp$request, redacted = 'reveal')$`api-version`, "2025-01-01")
 })
 
-test_that("Query auth - single parameter", {
+test_that("Query auth - single parameter with plain string", {
   # Use httpbin which echoes back query parameters
   app <- webfakes::local_app_process(webfakes::httpbin_app())
 
@@ -153,7 +153,30 @@ test_that("Query auth - single parameter", {
     "get"
   )
 
-  # Test with plain string credential (not JSON)
+  # Test with plain string credential (like bearer/header auth)
+  resp <- get_data(.credentials = "secret123")
+
+  # Verify the API key was sent in the query string
+  expect_equal(resp$args$apikey, "secret123")
+})
+
+test_that("Query auth - single parameter with named list", {
+  # Use httpbin which echoes back query parameters
+  app <- webfakes::local_app_process(webfakes::httpbin_app())
+
+  # Create wrapper with single-parameter query auth
+  api <- wrapper(
+    app$url(),
+    auth = query_auth_type(param_names = "apikey")
+  )
+
+  # Create a simple requestor
+  get_data <- requestor(
+    api,
+    "get"
+  )
+
+  # Test with named list (should also work for backward compatibility)
   resp <- get_data(.credentials = list(apikey = "secret123"))
 
   # Verify the API key was sent in the query string
